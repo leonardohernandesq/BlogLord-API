@@ -1,4 +1,6 @@
 const bcrypt = require('bcrypt');
+const jsonwebtoken = require('jsonwebtoken');
+const dotenv = require('dotenv');
 const User = require("../models/UserModel");
 
 const UserController = {
@@ -14,12 +16,22 @@ const UserController = {
   create: async (req, res) => {
     try {
       const { name, email, password, confirmPassword, linkedin, github } = req.body;
+      const emailExist = await User.findOne({ email });
+
       if(!name || !email || !password || !confirmPassword) {
         return res.status(400).json({ error: "Todos os campos são obrigatórios!" });
       }
 
       if(password !== confirmPassword)  {
         return res.status(400).json({ error: "As senhas não coincidem!" });
+      }
+
+      if(email.length < 5 || !email.includes("@")) {
+        return res.status(400).json({ error: "Email inválido!" });
+      }
+
+      if(emailExist) {
+        return res.status(400).json({ error: "Email já cadastrado!" });
       }
 
       encryptPassword = async (password) => {
@@ -31,6 +43,10 @@ const UserController = {
 
       const newUser = new User({ name, email, password: password_hash, linkedin, github });
       await newUser.save();
+
+      newUser.password = undefined;
+      newUser.__v = undefined;
+
       res.status(201).json(newUser);
     } catch (error) {
       res.status(500).json({ error: "Erro ao criar usuário" });
@@ -56,29 +72,68 @@ const UserController = {
       if (!email || !password) {
         return res.status(400).json({ error: "Email e senha são obrigatórios!" });
       }
-
+  
       const user = await User.findOne({ email });
       if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
-
+  
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) return res.status(400).json({ error: "Senha incorreta" });
-
-      user.password = undefined;
-      user.__v = undefined;
-      res.json(user);
+  
+      // Remove campos sensíveis e converte para objeto
+      const userObj = user.toObject();
+      delete userObj.password;
+      delete userObj.__v;
+  
+      // Gera token
+      const token = jsonwebtoken.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+  
+      // Coloca o token dentro do objeto user
+      userObj.token = token;
+  
+      // Responde com o user completo com token embutido
+      res.json({user: userObj});
+  
     } catch (error) {
       res.status(500).json({ error: "Erro ao fazer login" });
     }
   },
 
-  logout: async (req, res) => {
+  update: async (req, res) => {
     try {
-      // Implementar lógica de logout, se necessário
-      res.json({ message: "Logout bem-sucedido" });
+      const { name, email, password, linkedin, github } = req.body;
+      const userId = req.params.id;
+
+      if (!name || !email) {
+        return res.status(400).json({ error: "Nome e email são obrigatórios!" });
+      }
+
+      const user = await User.findById(userId);
+      if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+
+      if (password) {
+        const salt = await bcrypt.genSalt(10);
+        password = await bcrypt.hash(password, salt);
+      }
+
+      await User.updateOne({ _id: userId }, { name, email, password, linkedin, github });
+      res.json({ message: "Usuário atualizado com sucesso!" });
     } catch (error) {
-      res.status(500).json({ error: "Erro ao fazer logout" });
+      res.status(500).json({ error: "Erro ao atualizar usuário" });
     }
   },
+
+  delete: async(req, res) => {
+    try {
+      const userId = req.params.id;
+      const user = await User.findById(userId);
+      if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+
+      await User.deleteOne({ _id: userId });
+      res.json({ message: "Usuário deletado com sucesso!" });
+    } catch (error) {
+      res.status(500).json({ error: "Erro ao deletar usuário" });
+    }
+  }
 };
 
 module.exports = UserController;
