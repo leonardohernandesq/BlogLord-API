@@ -1,6 +1,5 @@
 const bcrypt = require('bcrypt');
 const jsonwebtoken = require('jsonwebtoken');
-const dotenv = require('dotenv');
 const User = require("../models/UserModel");
 
 const UserController = {
@@ -118,9 +117,10 @@ const UserController = {
       await User.updateOne({ _id: userId }, { name, email, password, linkedin, github });
       res.json({ message: "Usuário atualizado com sucesso!" });
     } catch (error) {
+      console.log(error)
       res.status(500).json({ error: "Erro ao atualizar usuário" });
     }
-  },
+  }, 
 
   delete: async(req, res) => {
     try {
