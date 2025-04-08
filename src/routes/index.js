@@ -3,7 +3,7 @@ const UserController = require("../controllers/UserController");
 const CategoryController = require("../controllers/CategoryController");
 const PostController = require("../controllers/PostController");
 const authMiddleware = require("../middlewares/authMiddleware");
-const upload = require('../config/multer'); // Ajuste o caminho conforme sua estrutura
+const upload = require('../config/multer');
 
 const router = express.Router();
 
