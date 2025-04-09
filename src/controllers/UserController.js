@@ -128,6 +128,9 @@ const UserController = {
       const user = await User.findById(userId);
       if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
 
+      // delete all posts from this user
+      await Post.deleteMany({ user: userId });
+
       await User.deleteOne({ _id: userId });
       res.json({ message: "Usuário deletado com sucesso!" });
     } catch (error) {

@@ -108,7 +108,8 @@ const PostController = {
 
     update: async (req, res) => {
         try {
-            const { title, content, status, userId } = req.body;
+            const { title, content, status } = req.body;
+            const userId = req.body.user || req.user?.id;
             const postId = req.params.id;
     
             const categories = typeof req.body.categories === "string"
@@ -116,7 +117,6 @@ const PostController = {
                 : req.body.categories;
     
             const post = await PostModel.findById(postId);
-            console.log(post);
             if (!post) {
                 return res.status(404).json({ error: "Post não encontrado!" });
             }
@@ -125,10 +125,7 @@ const PostController = {
                 return res.status(403).json({ error: "Você não tem permissão para editar este post!" });
             }
     
-            if (title) post.title = title;
-            if (content) post.content = content;
-            if (status) post.status = status;
-    
+            // Validação de categorias, se fornecidas
             if (categories && categories.length > 0) {
                 for (const category of categories) {
                     const categoryExists = await CategoryModel.findById(category);
@@ -139,10 +136,29 @@ const PostController = {
                 post.categories = categories;
             }
     
-            const image = req.file?.filename;
-            if (image) {
-                post.image = image;
+            // Upload de imagem para Cloudinary, se houver arquivo
+            if (req.file) {
+                const streamUpload = () => {
+                    return new Promise((resolve, reject) => {
+                        const stream = cloudinary.uploader.upload_stream(
+                            { folder: 'posts' },
+                            (error, result) => {
+                                if (result) resolve(result);
+                                else reject(error);
+                            }
+                        );
+                        streamifier.createReadStream(req.file.buffer).pipe(stream);
+                    });
+                };
+    
+                const result = await streamUpload();
+                post.image = result.secure_url;
             }
+    
+            // Atualização dos campos, se fornecidos
+            if (title) post.title = title;
+            if (content) post.content = content;
+            if (status) post.status = status;
     
             await post.save();
             res.status(200).json(post);
@@ -152,10 +168,16 @@ const PostController = {
         }
     },
     
+    
 
     delete: async (req, res) => {
         try {
             const post = await PostModel.findByIdAndDelete(req.params.id);
+            // Deletar imagem do Cloudinary, se houver
+            if (post.image) {
+                const publicId = post.image.split('/').pop().split('.')[0];
+                await cloudinary.uploader.destroy(`posts/${publicId}`);
+            }
             if (!post) return res.status(404).json({ error: "Post não encontrado" });
             res.json({ message: "Post deletado com sucesso!" });
         } catch (error) {
@@ -172,7 +194,8 @@ const PostController = {
         } catch (error) {
             res.status(500).json({ error: "Erro ao adicionar visualização" });
         }
-    }
+    },
+
 };   
 
 module.exports = PostController;

@@ -54,6 +54,10 @@ const CategoryController = {
         try {
             const category = await CategoryModel.findByIdAndDelete(req.params.id);
             if (!category) return res.status(404).json({ error: "Categoria não encontrada" });
+
+            // Deletar todos os posts associados a esta categoria
+            await PostModel.deleteMany({ categories: req.params.id });
+
             res.json({ message: "Categoria deletada com sucesso!" });
         } catch (error) {
             res.status(500).json({ error: "Erro ao deletar categoria" });
