@@ -152,6 +152,17 @@ const PostController = {
         } catch (error) {
             res.status(500).json({ error: "Erro ao deletar post" });
         }
+    },
+    addView: async (req, res) => {
+        try {
+            const post = await PostModel.findById(req.params.id);
+            if (!post) return res.status(404).json({ error: "Post não encontrado" });
+            post.views += 1;
+            await post.save();
+            res.json(post);
+        } catch (error) {
+            res.status(500).json({ error: "Erro ao adicionar visualização" });
+        }
     }
 };   
 

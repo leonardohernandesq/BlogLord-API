@@ -35,6 +35,7 @@ router.get("/posts/category/:id", authMiddleware, PostController.getPostsByCateg
 router.get("/posts/user/:id", authMiddleware, PostController.getPostsByUser);
 
 router.post("/posts/create", authMiddleware, upload.single("image"), PostController.create);
+router.post('/posts/addview/:id', PostController.addView);
 
 router.put("/posts/:id", authMiddleware, PostController.update);
 
