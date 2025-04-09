@@ -1,16 +1,23 @@
 const multer = require('multer');
-const path = require('path');
 
-// Local onde os arquivos serão salvos
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/'); // Garante que a pasta 'uploads/' existe
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname)); // exemplo: 1689272983.jpg
+// Usa memória para armazenar os arquivos como buffer (necessário para Cloudinary)
+const storage = multer.memoryStorage();
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // Limite: 5MB
+  fileFilter: (req, file, cb) => {
+    // Aceita apenas imagens
+    if (
+      file.mimetype === 'image/jpeg' ||
+      file.mimetype === 'image/png' ||
+      file.mimetype === 'image/webp'
+    ) {
+      cb(null, true);
+    } else {
+      cb(new Error('Apenas arquivos .jpeg, .png ou .webp são permitidos!'), false);
     }
+  }
 });
-
-const upload = multer({ storage });
 
 module.exports = upload;
