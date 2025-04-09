@@ -40,7 +40,14 @@ const UserController = {
 
       const password_hash = await encryptPassword(password);
 
-      const newUser = new User({ name, email, password: password_hash, linkedin, github });
+      // github tem o valor https://github.com/leonardohernandesq
+      // pegar valor após o último /
+      const githubUser = github.split("/").pop();
+      const avatar_url = await fetch(`https://api.github.com/users/${githubUser}`)
+      avatar_url = await avatar.json()
+      const avatar = avatar_url.avatar_url;
+
+      const newUser = new User({ name, email, password: password_hash, linkedin, github, avatar });
       await newUser.save();
 
       newUser.password = undefined;
