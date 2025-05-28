@@ -9,16 +9,10 @@ connectDB();
 
 const app = express();
 
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
-}));
-
-app.options('*', cors()); // Preflight handler
+app.use(cors());
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // útil para form-data (sem arquivos)
+
 app.use("/api", Routes);
 
 app.listen(process.env.PORT, () => {
