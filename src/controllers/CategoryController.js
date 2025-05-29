@@ -3,7 +3,7 @@ const CategoryModel = require("../models/CategoryModel");
 const CategoryController = {
   getAll: async (req, res) => {
     try {
-      const categories = await CategoryModel.find();
+      const categories = await CategoryModel.find().select("-__v");
       res.json(categories);
     } catch (error) {
       res.status(500).json({ error: "Erro ao buscar categorias" });
@@ -40,7 +40,9 @@ const CategoryController = {
 
   getById: async (req, res) => {
     try {
-      const category = await CategoryModel.findById(req.params.id);
+      const category = await CategoryModel.findById(req.params.id).select(
+        "-__v"
+      );
       if (!category)
         return res.status(404).json({ error: "Categoria não encontrada" });
       res.json(category);
