@@ -1,10 +1,9 @@
 const PostModel = require("../models/PostModel");
 const CategoryModel = require("../models/CategoryModel");
 const UserModel = require("../models/UserModel");
-const multer = require("multer");
-const path = require("path");
 const cloudinary = require("../config/cloudinary");
 const streamifier = require("streamifier");
+const mongoose = require("mongoose");
 
 const PostController = {
   getAll: async (req, res) => {
@@ -199,16 +198,11 @@ const PostController = {
 
       if (post.image) {
         const publicId = post.image.split("/").pop().split(".")[0];
-        try {
-          await cloudinary.uploader.destroy(`posts/${publicId}`);
-        } catch (cloudErr) {
-          console.error("Erro ao deletar imagem no Cloudinary:", cloudErr);
-        }
+        await cloudinary.uploader.destroy(`posts/${publicId}`);
       }
 
       res.json({ message: "Post deletado com sucesso!" });
     } catch (error) {
-      console.error("Erro ao deletar post:", error);
       res.status(500).json({ error: "Erro ao deletar post" });
     }
   },
