@@ -64,12 +64,10 @@ const PostController = {
           : req.body.categories;
 
       if (!title || !content || !categories || categories.length === 0) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Título, conteúdo e pelo menos uma categoria são obrigatórios!",
-          });
+        return res.status(400).json({
+          error:
+            "Título, conteúdo e pelo menos uma categoria são obrigatórios!",
+        });
       }
 
       for (const category of categories) {
@@ -187,17 +185,30 @@ const PostController = {
 
   delete: async (req, res) => {
     try {
-      const post = await PostModel.findByIdAndDelete(req.params.id);
+      const { id } = req.params;
 
-      if (!post) return res.status(404).json({ error: "Post não encontrado" });
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ error: "ID inválido" });
+      }
 
-      // Deletar imagem do Cloudinary, se houver
+      const post = await PostModel.findByIdAndDelete(id);
+
+      if (!post) {
+        return res.status(404).json({ error: "Post não encontrado" });
+      }
+
       if (post.image) {
         const publicId = post.image.split("/").pop().split(".")[0];
-        await cloudinary.uploader.destroy(`posts/${publicId}`);
+        try {
+          await cloudinary.uploader.destroy(`posts/${publicId}`);
+        } catch (cloudErr) {
+          console.error("Erro ao deletar imagem no Cloudinary:", cloudErr);
+        }
       }
+
       res.json({ message: "Post deletado com sucesso!" });
     } catch (error) {
+      console.error("Erro ao deletar post:", error);
       res.status(500).json({ error: "Erro ao deletar post" });
     }
   },
