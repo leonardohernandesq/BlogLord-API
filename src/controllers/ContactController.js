@@ -5,7 +5,19 @@ const ContactController = {
     const resend = new Resend(process.env.RESEND);
 
     try {
-      const { name, email, message } = req.body;
+      const { name, phone, email, message } = req.body;
+
+      if (!email || !email.includes("@")) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Insira um email válido" });
+      }
+
+      if (!message) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Mensagem é obrigatória" });
+      }
 
       const result = await resend.emails.send({
         from: `Lord System <onboarding@resend.dev>`,
@@ -16,6 +28,7 @@ const ContactController = {
         html: `
           <p><strong>Nome:</strong> ${name}</p>
           <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Telefone:</strong> ${phone}</p>
           <p><strong>Mensagem:</strong></p>
           <p>${message}</p>
         `,
