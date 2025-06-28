@@ -2,8 +2,9 @@ const express = require("express");
 const UserController = require("../controllers/UserController");
 const CategoryController = require("../controllers/CategoryController");
 const PostController = require("../controllers/PostController");
+const ContactController = require("../controllers/ContactController");
 const authMiddleware = require("../middlewares/authMiddleware");
-const upload = require('../config/multer');
+const upload = require("../config/multer");
 
 const router = express.Router();
 
@@ -34,11 +35,23 @@ router.get("/posts/:id", PostController.getPostById);
 router.get("/posts/category/:id", PostController.getPostsByCategory);
 router.get("/posts/user/:id", PostController.getPostsByUser);
 
-router.post("/posts/create", authMiddleware, upload.single("image"), PostController.create);
-router.post('/posts/addview/:id', PostController.addView);
+router.post(
+  "/posts/create",
+  authMiddleware,
+  upload.single("image"),
+  PostController.create
+);
+router.post("/posts/addview/:id", PostController.addView);
 
-router.put("/posts/:id", authMiddleware, upload.single("image"), PostController.update);
+router.put(
+  "/posts/:id",
+  authMiddleware,
+  upload.single("image"),
+  PostController.update
+);
 
 router.delete("/posts/:id", authMiddleware, PostController.delete);
+
+router.post("/contact", ContactController.send);
 
 module.exports = router;
