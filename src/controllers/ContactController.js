@@ -7,6 +7,12 @@ const ContactController = {
     try {
       const { name, phone, email, message } = req.body;
 
+      if (!phone) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Insira um telefone" });
+      }
+
       if (!email || !email.includes("@")) {
         return res
           .status(400)
