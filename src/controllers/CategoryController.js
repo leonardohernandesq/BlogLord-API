@@ -1,4 +1,6 @@
 const CategoryModel = require("../models/CategoryModel");
+const PostModel = require("../models/PostModel"); 
+
 
 const CategoryController = {
   getAll: async (req, res) => {
