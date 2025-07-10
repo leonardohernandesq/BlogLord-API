@@ -84,7 +84,7 @@ const CategoryController = {
       }
 
       // Deletar todos os posts associados a esta categoria
-      await PostModel.deleteMany({ categories: req.params.id });
+      //await PostModel.deleteMany({ categories: req.params.id });
 
       res.json({ message: "Categoria deletada com sucesso!" });
     } catch (error) {
