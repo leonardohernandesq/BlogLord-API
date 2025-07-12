@@ -1,12 +1,35 @@
 const { Resend } = require("resend");
+const axios = require("axios");
 
 const ContactController = {
   send: async (req, res) => {
     const resend = new Resend(process.env.RESEND);
 
     try {
-      const { name, phone, email, message } = req.body;
+      const { name, phone, email, message, recaptchaToken } = req.body;
 
+      // 1. Validar reCAPTCHA token
+      if (!recaptchaToken) {
+        return res.status(400).json({
+          success: false,
+          message: "Token do reCAPTCHA ausente.",
+        });
+      }
+
+      const recaptchaResponse = await axios.post(
+        `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${recaptchaToken}`
+      );
+
+      const { success, score, action } = recaptchaResponse.data;
+
+      if (!success) {
+        return res.status(400).json({
+          success: false,
+          message: "Falha na verificação do reCAPTCHA.",
+        });
+      }
+
+      // 2. Validação dos campos
       if (!phone) {
         return res
           .status(400)
@@ -25,6 +48,7 @@ const ContactController = {
           .json({ success: false, message: "Mensagem é obrigatória" });
       }
 
+      // 3. Enviar email via Resend
       const result = await resend.emails.send({
         from: `Lord System <onboarding@resend.dev>`,
         to: "leonardo_hernandes@outlook.com.br",
