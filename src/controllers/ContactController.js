@@ -17,7 +17,7 @@ const ContactController = {
       }
 
       const recaptchaResponse = await axios.post(
-        `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${recaptchaToken}`
+        `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${recaptchaToken}`,
       );
 
       const { success, score, action } = recaptchaResponse.data;
@@ -52,7 +52,6 @@ const ContactController = {
       const result = await resend.emails.send({
         from: `Lord System <onboarding@resend.dev>`,
         to: "leonardo_hernandes@outlook.com.br",
-        cc: "henriquepacotee@gmail.com",
         reply_to: email,
         subject: "Orçamento do site da Lord System",
         html: `
